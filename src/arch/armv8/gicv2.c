@@ -151,9 +151,9 @@ bool gic_is_active(uint64_t int_id){
     return ((1U << off) & gicd->ISACTIVER[reg_ind]) != 0;
 }
 
-void gic_handle(){
+void gic_handle(uint32_t ulICCIAR){
 
-    uint64_t ack = gicc->IAR;
+    uint64_t ack = ulICCIAR;
     uint64_t id = ack & GICC_IAR_ID_MSK;
     uint64_t src = (ack & GICC_IAR_CPU_MSK) >> GICC_IAR_CPU_OFF;
 
@@ -163,7 +163,5 @@ void gic_handle(){
 
     if(id >= 32 && id <= 35)
         return; 
-        
-    gicc->EOIR = ack;
     
 }
