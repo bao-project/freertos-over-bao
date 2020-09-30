@@ -2,13 +2,15 @@
 #include <cpu.h>
 #include <gic.h>
 
+#include <FreeRTOS.h>
+
 #ifndef GIC_VERSION
 #error "GIC_VERSION not defined for this platform"
 #endif
 
 void irq_enable(unsigned id) {
    gic_set_enable(id, true); 
-   gic_set_prio(id, 0);
+   gic_set_prio(id, portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT);
    if(GIC_VERSION == GICV2) {
        gic_set_trgt(id, 1 << get_cpuid());
    } else {
