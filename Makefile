@@ -27,7 +27,13 @@ endif
 SRC_DIR:=./src
 BUILD_DIR:=build/$(PLATFORM)
 TARGET:=$(BUILD_DIR)/$(NAME)
-SRC_DIRS:=$(SRC_DIR)
+PLATFORM_DIR:=$(SRC_DIR)/platform/$(PLATFORM)
+DRIVERS_DIR:=$(SRC_DIR)/drivers
+SRC_DIRS:=$(SRC_DIR) $(PLATFORM_DIR)
+
+ifeq ($(wildcard $(PLATFORM_DIR)),)
+$(error unsupported platform $(PLATFORM))
+endif
 
 -include $(SRC_DIR)/sources.mk
 C_SRC+=$(addprefix $(SRC_DIR)/, $(src_c_srcs))
@@ -38,15 +44,15 @@ SRC_DIRS+=$(FREERTOS_DIR) $(FREERTOS_MEMMNG_DIR)
 C_SRC+=$(wildcard $(FREERTOS_DIR)/*.c)
 C_SRC+=$(FREERTOS_MEMMNG_DIR)/heap_4.c
 
-PLATFORM_DIR:=$(SRC_DIR)/platform/$(PLATFORM)
-ifeq ($(wildcard $(PLATFORM_DIR)),)
-$(error unsupported platform $(PLATFORM))
-endif
-SRC_DIRS+=$(PLATFORM_DIR)
 -include $(PLATFORM_DIR)/plat.mk
 -include $(PLATFORM_DIR)/sources.mk
 C_SRC+=$(addprefix $(PLATFORM_DIR)/, $(plat_c_srcs))
 ASM_SRC+=$(addprefix $(PLATFORM_DIR)/, $(plat_s_srcs))
+
+SRC_DIRS+= $(foreach driver, $(drivers), $(DRIVERS_DIR)/$(driver))
+-include $(foreach driver, $(drivers), $(DRIVERS_DIR)/$(driver)/sources.mk)
+C_SRC+=$(addprefix $(DRIVERS_DIR)/, $(driver_c_srcs))
+ASM_SRC+=$(addprefix $(DRIVERS_DIR)/, $(driver_s_srcs))
 
 ARCH_DIR:= $(SRC_DIR)/arch/$(ARCH)
 ifeq ($(wildcard $(ARCH_DIR)),)
@@ -76,7 +82,7 @@ GENERIC_FLAGS = $(ARCH_GENERIC_FLAGS) -O$(OPT_LEVEL) -g$(DEBUG_LEVEL) -static
 ASFLAGS = $(GENERIC_FLAGS) $(ARCH_ASFLAGS) 
 CFLAGS = $(GENERIC_FLAGS) $(ARCH_CFLAGS) 
 CPPFLAGS =	$(ARCH_CPPFLAGS) $(addprefix -I, $(INC_DIRS)) -MD -MF $@.d
-LDFLAGS = $(GENERIC_FLAGS) $(ARCH_LDFLAGS) -nostartfiles 
+LDFLAGS = $(GENERIC_FLAGS) $(ARCH_LDFLAGS) -nostartfiles
 all: $(TARGET).bin
 
 ifneq ($(MAKECMDGOALS), clean)
