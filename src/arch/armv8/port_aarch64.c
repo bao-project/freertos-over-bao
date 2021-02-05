@@ -25,6 +25,6 @@ void FreeRTOS_SetupTickInterrupt(){
 }
 
 void vApplicationIRQHandler(uint32_t ulICCIAR){ 
-    gic_handle(ulICCIAR);
+    irq_handle(ulICCIAR);
 }
 

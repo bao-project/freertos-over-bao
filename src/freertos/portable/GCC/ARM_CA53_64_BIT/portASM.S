@@ -321,13 +321,15 @@ FreeRTOS_IRQ_Handler:
 	LDR		X3, [X2]
 	LDR		W0, [X3]	/* ICCIAR in W0 as parameter. */
 #else
-	MRS     X0, ICC_IAR0_EL1
+	MRS     X0, ICC_IAR1_EL1
 #endif
 
 	/* Maintain the ICCIAR value across the function call. */
 	STP		X0, X1, [SP, #-0x10]!
 
 	/* Call the C handler. */
+	/* arg0/x0 = IAR_INTID */
+	and		X0, X0, 0x3ff
 	BL vApplicationIRQHandler
 
 	/* Disable interrupts. */
@@ -344,7 +346,7 @@ FreeRTOS_IRQ_Handler:
 	LDR		X4, [X4]
 	STR		W0, [X4]
 #else
-	MSR     ICC_EOIR0_EL1, X0
+	MSR     ICC_EOIR1_EL1, X0
 #endif
 
 	/* Restore the critical nesting count. */
