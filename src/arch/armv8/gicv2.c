@@ -160,9 +160,6 @@ void gic_handle(){
     if(id >= 1022) return;
 
     irq_handle(id);
-
-    if(id >= 32 && id <= 35)
-        return; 
         
     gicc->EOIR = ack;
     

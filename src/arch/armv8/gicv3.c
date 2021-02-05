@@ -55,48 +55,6 @@ static inline void gicr_init()
     }
 }
 
-//void gicc_save_state(gicc_state_t *state)
-//{
-//    state->CTLR = MRS(ICC_CTLR_EL1);
-//    state->PMR = MRS(ICC_PMR_EL1);
-//    //state->IAR = MRS(ICC_IAR1_EL1);
-//    state->BPR = MRS(ICC_BPR1_EL1);
-//    //state->EOIR = MRS(ICC_EOIR1_EL1);
-//    state->RPR = MRS(ICC_RPR_EL1);
-//    state->HPPIR = MRS(ICC_HPPIR1_EL1);
-//    state->priv_ISENABLER = gicr[get_cpuid()].ISENABLER0;
-//
-//    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
-//        state->priv_IPRIORITYR[i] = gicr[get_cpuid()].IPRIORITYR[i];
-//    }
-//
-//    state->HCR = MRS(ICH_HCR_EL2);
-//    for (int i = 0; i < gich_num_lrs(); i++) {
-//        state->LR[i] = gich_read_lr(i);
-//    }
-//}
-//
-//void gicc_restore_state(gicc_state_t *state)
-//{
-//    MSR(ICC_CTLR_EL1, state->CTLR);
-//    MSR(ICC_PMR_EL1, state->PMR);
-//    MSR(ICC_BPR1_EL1, state->BPR);
-//    //MSR(ICC_EOIR1_EL1, state->EOIR);
-//    //MSR(ICC_IAR1_EL1, state->IAR);
-//    MSR(ICC_RPR_EL1, state->RPR);
-//    MSR(ICC_HPPIR1_EL1, state->HPPIR);
-//    gicr[get_cpuid()].ISENABLER0 = state->priv_ISENABLER;
-//
-//    for (int i = 0; i < GIC_NUM_PRIO_REGS(GIC_CPU_PRIV); i++) {
-//        gicr[get_cpuid()].IPRIORITYR[i] = state->priv_IPRIORITYR[i];
-//    }
-//
-//    MSR(ICH_HCR_EL2, state->HCR);
-//    for (int i = 0; i < gich_num_lrs(); i++) {
-//        gich_write_lr(i, state->LR[i]);
-//    }
-//}
-
 void gic_cpu_init()
 {
     gicr_init();
@@ -154,7 +112,6 @@ void gic_handle()
     irq_handle(id);
 
     MSR(ICC_EOIR1_EL1, ack);
-    //MSR(ICC_DIR_EL1, ack);
 }
 
 uint64_t gicd_get_prio(uint64_t int_id)
