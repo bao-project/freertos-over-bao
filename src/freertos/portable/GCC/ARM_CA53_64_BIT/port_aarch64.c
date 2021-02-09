@@ -1,5 +1,6 @@
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
+#include <portmacro.h>
 #include <sysregs.h>
 #include <gic.h>
 #include <irq.h>
@@ -17,6 +18,7 @@ static void tick_handler_wrapper(unsigned id) {
 void FreeRTOS_SetupTickInterrupt(){
     irq_set_handler(27, tick_handler_wrapper);
     irq_enable(27);
+    irq_set_prio(27, portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT);
 
     uint64_t freq = MRS(CNTFRQ_EL0);
     timer_step = freq / configTICK_RATE_HZ;

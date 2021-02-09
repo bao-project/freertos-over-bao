@@ -15,7 +15,7 @@
 #
 
 NAME := freertos
-OPT_LEVEL = 0
+OPT_LEVEL = 3
 DEBUG_LEVEL = 3
 
 ifneq ($(MAKECMDGOALS), clean)
@@ -25,6 +25,7 @@ endif
 endif
 
 SRC_DIR:=./src
+BMRT_SRC_DIR:=./src/baremetal-runtime/src
 BUILD_DIR:=build/$(PLATFORM)
 TARGET:=$(BUILD_DIR)/$(NAME)
 SRC_DIRS:=$(SRC_DIR)
@@ -38,7 +39,12 @@ SRC_DIRS+=$(FREERTOS_DIR) $(FREERTOS_MEMMNG_DIR)
 C_SRC+=$(wildcard $(FREERTOS_DIR)/*.c)
 C_SRC+=$(FREERTOS_MEMMNG_DIR)/heap_4.c
 
-PLATFORM_DIR:=$(SRC_DIR)/platform/$(PLATFORM)
+BMRT_CORE_DIR:=$(BMRT_SRC_DIR)/core
+SRC_DIRS+=$(BMRT_CORE_DIR)
+-include $(BMRT_CORE_DIR)/sources.mk
+C_SRC+=$(addprefix $(BMRT_CORE_DIR)/, $(core_c_srcs))
+
+PLATFORM_DIR:=$(BMRT_SRC_DIR)/platform/$(PLATFORM)
 ifeq ($(wildcard $(PLATFORM_DIR)),)
 $(error unsupported platform $(PLATFORM))
 endif
@@ -48,21 +54,38 @@ SRC_DIRS+=$(PLATFORM_DIR)
 C_SRC+=$(addprefix $(PLATFORM_DIR)/, $(plat_c_srcs))
 ASM_SRC+=$(addprefix $(PLATFORM_DIR)/, $(plat_s_srcs))
 
-ARCH_DIR:= $(SRC_DIR)/arch/$(ARCH)
+DRIVERS_DIR:=$(addprefix $(BMRT_SRC_DIR)/drivers/, $(drivers))
+SRC_DIRS+=$(DRIVERS_DIR)
+-include $(addprefix $(DRIVERS_DIR), /sources.mk)
+C_SRC+=$(addprefix $(BMRT_SRC_DIR)/drivers/, $(driver_c_srcs))
+ASM_SRC+=$(addprefix $(BMRT_SRC_DIR)/drivers/, $(driver_s_srcs))
+
+ARCH_DIR:=$(SRC_DIR)/arch/$(ARCH)
+BMRT_ARCH_DIR:= $(BMRT_SRC_DIR)/arch/$(ARCH)
 ifeq ($(wildcard $(ARCH_DIR)),)
 $(error unsupported architecture $(ARCH))
 endif
-SRC_DIRS+= $(ARCH_DIR)
+SRC_DIRS+= $(ARCH_DIR) $(BMRT_ARCH_DIR)
+-include $(BMRT_ARCH_DIR)/arch.mk
+-include $(BMRT_ARCH_DIR)/sources.mk
+bmrt_arch_c_srcs:=$(arch_c_srcs)
+bmrt_arch_s_srcs:=$(arch_s_srcs)
+C_SRC+=$(addprefix $(BMRT_ARCH_DIR)/, $(bmrt_arch_c_srcs))
+ASM_SRC+=$(addprefix $(BMRT_ARCH_DIR)/, $(bmrt_arch_s_srcs))
+arch_c_srcs:=
+arch_s_srcs:=
 -include $(ARCH_DIR)/arch.mk
 -include $(ARCH_DIR)/sources.mk
 C_SRC+=$(addprefix $(ARCH_DIR)/, $(arch_c_srcs))
 ASM_SRC+=$(addprefix $(ARCH_DIR)/, $(arch_s_srcs))
 
-INC_DIRS+=$(realpath  $(addsuffix /inc, $(SRC_DIRS)) $(addsuffix /include, $(SRC_DIRS)))
+INC_DIRS+=$(realpath  $(addsuffix /inc, $(SRC_DIRS)) \
+	$(addsuffix /include, $(SRC_DIRS)))
 
-LD_FILE:= $(SRC_DIR)/linker.ld
+LD_FILE:= $(BMRT_SRC_DIR)/linker.ld
 GEN_LD_FILE:= $(BUILD_DIR)/linker.ld
-OBJS = $(C_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o) $(ASM_SRC:$(SRC_DIR)/%.S=$(BUILD_DIR)/%.o)
+OBJS = $(C_SRC:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o) \
+	$(ASM_SRC:$(SRC_DIR)/%.S=$(BUILD_DIR)/%.o)
 DEPS = $(OBJS:%=%.d) $(GEN_LD_FILE).d
 DIRS:=$(sort $(dir $(OBJS) $(DEPS)))
 

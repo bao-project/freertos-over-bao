@@ -426,7 +426,7 @@ void FreeRTOS_Tick_Handler( void )
 	necessary to turn off interrupts in the CPU itself while the ICCPMR is being
 	updated. */
 #if (GIC_VERSION == GICV2)
-	//portICCPMR_PRIORITY_MASK_REGISTER = ( uint32_t ) ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
+	portICCPMR_PRIORITY_MASK_REGISTER = ( uint32_t ) ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
 #else
 	MSR(ICC_PMR_EL1, ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT ));
 #endif

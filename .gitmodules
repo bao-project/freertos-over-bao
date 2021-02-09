@@ -1,0 +1,3 @@
+[submodule "src/baremetal-runtime"]
+	path = src/baremetal-runtime
+	url = https://github.com/bao-project/bao-baremetal-guest
