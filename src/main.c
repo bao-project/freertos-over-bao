@@ -51,14 +51,25 @@ void vTask(void *pvParameters)
     unsigned long id = (unsigned long)pvParameters;
     while (1)
     {
-        printf("Task%d: %d\n", id, counter++);
+        printf("Task%d: %d\n", id, counter++); 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
 
+#define SHMEM_IRQ_ID (52)
+
+volatile char* freertos_message = (char*)0xf0000000;
+volatile char* linux_message    = (char*)0xf0002000;
+
 void uart_rx_handler(){
-    printf("%s\n", __func__);
+    static int count = 0;
+    printf("%s %d\n", __func__, ++count);
+    sprintf(freertos_message, "freertos has received %d uart interrupts!\n", count);
     uart_clear_rxirq();
+}
+
+void shmem_handler() {
+    printf("message from linux: %s\0", linux_message);
 }
 
 int main(void){
@@ -67,7 +78,12 @@ int main(void){
 
     uart_enable_rxirq();
     irq_set_handler(UART_IRQ_ID, uart_rx_handler);
-    irq_enable(UART_IRQ_ID);
+    irq_set_prio(UART_IRQ_ID, IRQ_MAX_PRIO);
+    irq_enable(UART_IRQ_ID);    
+
+    irq_set_handler(SHMEM_IRQ_ID, shmem_handler);
+    irq_set_prio(SHMEM_IRQ_ID, IRQ_MAX_PRIO);
+    irq_enable(SHMEM_IRQ_ID);
 
     xTaskCreate(
         vTask,
@@ -112,7 +128,7 @@ void vApplicationIdleHook(void)
     /* vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
 	to 1 in FreeRTOSConfig.h.  It will be called on each iteration of the idle
 	task.  It is essential that code added to this hook function never attempts
-	to block in any way (for example, call xQueueReceive() with a block time
+	to block in any way (for example, call xQue     ueReceive() with a block time
 	specified, or call vTaskDelay()).  If the application makes use of the
 	vTaskDelete() API function (as this demo application does) then it is also
 	important that vApplicationIdleHook() is permitted to return to its calling
