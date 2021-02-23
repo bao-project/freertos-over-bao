@@ -29,6 +29,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <uart.h>
 #include <irq.h>
@@ -58,8 +59,9 @@ void vTask(void *pvParameters)
 
 #define SHMEM_IRQ_ID (52)
 
-volatile char* freertos_message = (char*)0xf0000000;
-volatile char* linux_message    = (char*)0xf0002000;
+char* const freertos_message = (char*)0x70000000;
+char* const linux_message    = (char*)0x70002000;
+const size_t shmem_channel_size = 0x2000;
 
 void uart_rx_handler(){
     static int count = 0;
@@ -69,7 +71,19 @@ void uart_rx_handler(){
 }
 
 void shmem_handler() {
-    printf("message from linux: %s\0", linux_message);
+    linux_message[shmem_channel_size-1] = '\0';
+    char* end = strchr(linux_message, '\n');
+    *end = '\0';
+    printf("message from linux: %s\n", linux_message);
+}
+
+void shmem_init() {
+    memset(freertos_message, 0, shmem_channel_size);
+    memset(linux_message, 0, shmem_channel_size);
+
+    irq_set_handler(SHMEM_IRQ_ID, shmem_handler);
+    irq_set_prio(SHMEM_IRQ_ID, IRQ_MAX_PRIO);
+    irq_enable(SHMEM_IRQ_ID);
 }
 
 int main(void){
@@ -81,9 +95,7 @@ int main(void){
     irq_set_prio(UART_IRQ_ID, IRQ_MAX_PRIO);
     irq_enable(UART_IRQ_ID);    
 
-    irq_set_handler(SHMEM_IRQ_ID, shmem_handler);
-    irq_set_prio(SHMEM_IRQ_ID, IRQ_MAX_PRIO);
-    irq_enable(SHMEM_IRQ_ID);
+    shmem_init();
 
     xTaskCreate(
         vTask,
