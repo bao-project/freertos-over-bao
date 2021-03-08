@@ -63,10 +63,16 @@ char* const freertos_message = (char*)0x70000000;
 char* const linux_message    = (char*)0x70002000;
 const size_t shmem_channel_size = 0x2000;
 
+
+void shmem_update_msg(int irq_count) {
+    sprintf(freertos_message, "freertos has received %d uart interrupts!\n", 
+        irq_count);
+}
+
 void uart_rx_handler(){
-    static int count = 0;
-    printf("%s %d\n", __func__, ++count);
-    sprintf(freertos_message, "freertos has received %d uart interrupts!\n", count);
+    static int irq_count = 0;
+    printf("%s %d\n", __func__, ++irq_count);
+    shmem_update_msg(irq_count);
     uart_clear_rxirq();
 }
 
@@ -80,7 +86,7 @@ void shmem_handler() {
 void shmem_init() {
     memset(freertos_message, 0, shmem_channel_size);
     memset(linux_message, 0, shmem_channel_size);
-
+    shmem_update_msg(0);
     irq_set_handler(SHMEM_IRQ_ID, shmem_handler);
     irq_set_prio(SHMEM_IRQ_ID, IRQ_MAX_PRIO);
     irq_enable(SHMEM_IRQ_ID);
