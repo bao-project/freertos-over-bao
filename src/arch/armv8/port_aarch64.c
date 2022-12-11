@@ -8,7 +8,7 @@
 static uint64_t timer_step = 0;
 
 void FreeRTOS_ClearTickInterrupt(){
-    MSR(CNTV_TVAL_EL0, timer_step);
+    sysreg_cntv_tval_el0_write(timer_step);
 }
 
 static void tick_handler_wrapper(unsigned id) {
@@ -20,10 +20,10 @@ void FreeRTOS_SetupTickInterrupt(){
     irq_enable(27);
     irq_set_prio(27, portLOWEST_USABLE_INTERRUPT_PRIORITY << portPRIORITY_SHIFT);
 
-    uint64_t freq = MRS(CNTFRQ_EL0);
+    uint64_t freq = sysreg_cntfrq_el0_read();
     timer_step = freq / configTICK_RATE_HZ;
-    MSR(CNTV_TVAL_EL0, timer_step);
-    MSR(CNTV_CTL_EL0, 1); // enable timer
+    sysreg_cntv_tval_el0_write(timer_step);
+    sysreg_cntv_ctl_el0_write(1); // enable timer
 }
 
 void vApplicationIRQHandler(uint32_t ulICCIAR){ 

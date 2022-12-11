@@ -211,9 +211,9 @@ number of bits implemented by the interrupt controller. */
 #define portICCBPR_BINARY_POINT_REGISTER 					( *( ( const volatile uint32_t * ) ( portINTERRUPT_CONTROLLER_CPU_INTERFACE_ADDRESS + portICCBPR_BINARY_POINT_OFFSET ) ) )
 #define portICCRPR_RUNNING_PRIORITY_REGISTER 				( *( ( const volatile uint32_t * ) ( portINTERRUPT_CONTROLLER_CPU_INTERFACE_ADDRESS + portICCRPR_RUNNING_PRIORITY_OFFSET ) ) )
 #else 
-#define portICCPMR_PRIORITY_MASK_REGISTER 					(MRS(ICC_PMR_EL1))
-#define portICCBPR_BINARY_POINT_REGISTER 					(MRS(ICC_BPR0_EL1))
-#define portICCRPR_RUNNING_PRIORITY_REGISTER 				(MRS(ICC_RPR_EL1))
+#define portICCPMR_PRIORITY_MASK_REGISTER 					(sysreg_icc_pmr_el1_read())
+#define portICCBPR_BINARY_POINT_REGISTER 					(sysreg_icc_bpr0_el1_read())
+#define portICCRPR_RUNNING_PRIORITY_REGISTER 				(sysreg_icc_rpr_el1_read())
 #endif
 
 #define portMEMORY_BARRIER() __asm volatile( "" ::: "memory" )

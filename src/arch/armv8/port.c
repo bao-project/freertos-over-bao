@@ -125,7 +125,7 @@ point is zero. */
 #if (GIC_VERSION == GICV2)
 	#define 	GIC_SET_PRIO_MASK(MASK) (portICCPMR_PRIORITY_MASK_REGISTER = MASK)
 #else			
-	#define 	GIC_SET_PRIO_MASK(MASK) MSR(ICC_PMR_EL1, MASK)
+	#define 	GIC_SET_PRIO_MASK(MASK) sysreg_icc_pmr_el1_write(MASK)
 #endif						
 
 #define portCLEAR_INTERRUPT_MASK()									\
@@ -429,7 +429,7 @@ void FreeRTOS_Tick_Handler( void )
 #if (GIC_VERSION == GICV2)
 	portICCPMR_PRIORITY_MASK_REGISTER = ( uint32_t ) ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
 #else
-	MSR(ICC_PMR_EL1, ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT ));
+	sysreg_icc_pmr_el1_write(( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT ));
 #endif
 	__asm volatile (	"dsb sy		\n"
 						"isb sy		\n" ::: "memory" );
@@ -487,7 +487,7 @@ uint32_t ulReturn;
 #if (GIC_VERSION == GICV2)
 		portICCPMR_PRIORITY_MASK_REGISTER = ( uint32_t ) ( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
 #else
-		MSR(ICC_PMR_EL1,  configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
+		sysreg_icc_pmr_el1_write( configMAX_API_CALL_INTERRUPT_PRIORITY << portPRIORITY_SHIFT );
 #endif
 		__asm volatile (	"dsb sy		\n"
 							"isb sy		\n" ::: "memory" );
