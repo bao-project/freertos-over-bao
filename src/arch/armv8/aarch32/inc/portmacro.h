@@ -1,6 +1,8 @@
 /*
- * FreeRTOS Kernel V10.4.3
- * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.5.1
+ * Copyright (C) 2021 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ *
+ * SPDX-License-Identifier: MIT
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -22,7 +24,6 @@
  * https://www.FreeRTOS.org
  * https://github.com/FreeRTOS
  *
- * 1 tab == 4 spaces!
  */
 
 #ifndef PORTMACRO_H
@@ -51,15 +52,15 @@
 #define portDOUBLE		double
 #define portLONG		long
 #define portSHORT		short
-#define portSTACK_TYPE	size_t
+#define portSTACK_TYPE	uint32_t
 #define portBASE_TYPE	long
 
 typedef portSTACK_TYPE StackType_t;
-typedef portBASE_TYPE BaseType_t;
-typedef uint64_t UBaseType_t;
+typedef long BaseType_t;
+typedef unsigned long UBaseType_t;
 
-typedef uint64_t TickType_t;
-#define portMAX_DELAY ( ( TickType_t ) 0xffffffffffffffff )
+typedef uint32_t TickType_t;
+#define portMAX_DELAY ( TickType_t ) 0xffffffffUL
 
 /* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
 not need to be guarded with a critical section. */
@@ -70,8 +71,7 @@ not need to be guarded with a critical section. */
 /* Hardware specifics. */
 #define portSTACK_GROWTH			( -1 )
 #define portTICK_PERIOD_MS			( ( TickType_t ) 1000 / configTICK_RATE_HZ )
-#define portBYTE_ALIGNMENT			16
-#define portPOINTER_SIZE_TYPE 		uint64_t
+#define portBYTE_ALIGNMENT			8
 
 /*-----------------------------------------------------------*/
 
@@ -80,46 +80,35 @@ not need to be guarded with a critical section. */
 /* Called at the end of an ISR that can cause a context switch. */
 #define portEND_SWITCHING_ISR( xSwitchRequired )\
 {												\
-extern uint64_t ullPortYieldRequired;			\
+extern uint32_t ulPortYieldRequired;			\
 												\
 	if( xSwitchRequired != pdFALSE )			\
 	{											\
-		ullPortYieldRequired = pdTRUE;			\
+		ulPortYieldRequired = pdTRUE;			\
 	}											\
 }
 
 #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
-#if defined( GUEST )
-	#define portYIELD() __asm volatile ( "SVC 0" ::: "memory" )
-#else
-	#define portYIELD() __asm volatile ( "SMC 0" ::: "memory" )
-#endif
+#define portYIELD() __asm volatile ( "SWI 0" ::: "memory" );
+
+
 /*-----------------------------------------------------------
  * Critical section control
  *----------------------------------------------------------*/
 
 extern void vPortEnterCritical( void );
 extern void vPortExitCritical( void );
-extern UBaseType_t uxPortSetInterruptMask( void );
-extern void vPortClearInterruptMask( UBaseType_t uxNewMaskValue );
+extern uint32_t ulPortSetInterruptMask( void );
+extern void vPortClearInterruptMask( uint32_t ulNewMaskValue );
 extern void vPortInstallFreeRTOSVectorTable( void );
-
-#define portDISABLE_INTERRUPTS()									\
-	__asm volatile ( "MSR DAIFSET, #2" ::: "memory" );				\
-	__asm volatile ( "DSB SY" );									\
-	__asm volatile ( "ISB SY" );
-
-#define portENABLE_INTERRUPTS()										\
-	__asm volatile ( "MSR DAIFCLR, #2" ::: "memory" );				\
-	__asm volatile ( "DSB SY" );									\
-	__asm volatile ( "ISB SY" );
-
 
 /* These macros do not globally disable/enable interrupts.  They do mask off
 interrupts that have a priority below configMAX_API_CALL_INTERRUPT_PRIORITY. */
 #define portENTER_CRITICAL()		vPortEnterCritical();
 #define portEXIT_CRITICAL()			vPortExitCritical();
-#define portSET_INTERRUPT_MASK_FROM_ISR()		uxPortSetInterruptMask()
+#define portDISABLE_INTERRUPTS()	ulPortSetInterruptMask()
+#define portENABLE_INTERRUPTS()		vPortClearInterruptMask( 0 )
+#define portSET_INTERRUPT_MASK_FROM_ISR()		ulPortSetInterruptMask()
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortClearInterruptMask(x)
 
 /*-----------------------------------------------------------*/
@@ -134,9 +123,18 @@ macros is used. */
 handler for whichever peripheral is used to generate the RTOS tick. */
 void FreeRTOS_Tick_Handler( void );
 
-/* Any task that uses the floating point unit MUST call vPortTaskUsesFPU()
-before any floating point instructions are executed. */
-void vPortTaskUsesFPU( void );
+/* If configUSE_TASK_FPU_SUPPORT is set to 1 (or left undefined) then tasks are
+created without an FPU context and must call vPortTaskUsesFPU() to give
+themselves an FPU context before using any FPU instructions.  If
+configUSE_TASK_FPU_SUPPORT is set to 2 then all tasks will have an FPU context
+by default. */
+#if( configUSE_TASK_FPU_SUPPORT != 2 )
+	void vPortTaskUsesFPU( void );
+#else
+	/* Each task has an FPU context already, so define this function away to
+	nothing to prevent it being called accidentally. */
+	#define vPortTaskUsesFPU()
+#endif
 #define portTASK_USES_FLOATING_POINT() vPortTaskUsesFPU()
 
 #define portLOWEST_INTERRUPT_PRIORITY ( ( ( uint32_t ) configUNIQUE_INTERRUPT_PRIORITIES ) - 1UL )
@@ -155,7 +153,7 @@ void vPortTaskUsesFPU( void );
 
 	/*-----------------------------------------------------------*/
 
-	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31 - __builtin_clz( uxReadyPriorities ) )
+	#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ( uint32_t ) __builtin_clz( uxReadyPriorities ) )
 
 #endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
 
@@ -210,9 +208,9 @@ number of bits implemented by the interrupt controller. */
 #define portICCBPR_BINARY_POINT_REGISTER 					( *( ( const volatile uint32_t * ) ( portINTERRUPT_CONTROLLER_CPU_INTERFACE_ADDRESS + portICCBPR_BINARY_POINT_OFFSET ) ) )
 #define portICCRPR_RUNNING_PRIORITY_REGISTER 				( *( ( const volatile uint32_t * ) ( portINTERRUPT_CONTROLLER_CPU_INTERFACE_ADDRESS + portICCRPR_RUNNING_PRIORITY_OFFSET ) ) )
 #else 
-#define portICCPMR_PRIORITY_MASK_REGISTER 					(MRS(ICC_PMR_EL1))
-#define portICCBPR_BINARY_POINT_REGISTER 					(MRS(ICC_BPR0_EL1))
-#define portICCRPR_RUNNING_PRIORITY_REGISTER 				(MRS(ICC_RPR_EL1))
+#define portICCPMR_PRIORITY_MASK_REGISTER 					(sysreg_icc_pmr_el1_read())
+#define portICCBPR_BINARY_POINT_REGISTER 					(sysreg_icc_bpr0_el1_read())
+#define portICCRPR_RUNNING_PRIORITY_REGISTER 				(sysreg_icc_rpr_el1_read())
 #endif
 
 #define portMEMORY_BARRIER() __asm volatile( "" ::: "memory" )
