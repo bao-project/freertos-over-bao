@@ -27,7 +27,6 @@
  */
 
 
-
 #include <sysregs.h>
 #define GICV2 (2)
 #define GICV3 (3)
