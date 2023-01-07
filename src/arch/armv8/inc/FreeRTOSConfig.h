@@ -123,7 +123,6 @@ void vApplicationAssert( const char *pcFile, uint32_t ulLine );
 #define INCLUDE_eTaskGetState                1
 #define INCLUDE_xTimerPendFunctionCall       1
 #define INCLUDE_pcTaskGetTaskName            1
-#define portPOINTER_SIZE_TYPE	uint64_t
 #define portTICK_TYPE_IS_ATOMIC 1
 #define configMESSAGE_BUFFER_LENGTH_TYPE uint32_t
 #define configSTACK_DEPTH_TYPE uint32_t
