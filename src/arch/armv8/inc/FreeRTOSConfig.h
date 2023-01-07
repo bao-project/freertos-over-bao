@@ -148,8 +148,6 @@ void FreeRTOS_ClearTickInterrupt( void );
 
 #define configMAX_API_CALL_INTERRUPT_PRIORITY (9)
 
-#define portSET_INTERRUPT_MASK_FROM_ISR()	uxPortSetInterruptMask()
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortClearInterruptMask(x)
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 
 #ifdef FREERTOS_ENABLE_TRACE
