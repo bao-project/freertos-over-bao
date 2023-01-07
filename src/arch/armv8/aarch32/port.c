@@ -36,6 +36,9 @@
 
 #include <sysregs.h>
 #include <gic.h>
+#include <plat.h>
+
+#define configINTERRUPT_CONTROLLER_BASE_ADDRESS PLAT_GICD_BASE_ADDR
 
 #ifndef configINTERRUPT_CONTROLLER_BASE_ADDRESS
 	#error configINTERRUPT_CONTROLLER_BASE_ADDRESS must be defined.  See https://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-Embedded-Processors.html

@@ -132,7 +132,6 @@ void vApplicationAssert( const char *pcFile, uint32_t ulLine );
 #define portLOWEST_INTERRUPT_PRIORITY ( ( ( uint32_t ) configUNIQUE_INTERRUPT_PRIORITIES ) - 1UL )
 #define portLOWEST_USABLE_INTERRUPT_PRIORITY ( portLOWEST_INTERRUPT_PRIORITY - 1UL )
 
-#define configINTERRUPT_CONTROLLER_BASE_ADDRESS 0xF9010000
 #define configINTERRUPT_CONTROLLER_CPU_INTERFACE_OFFSET 0x10000
 
 void FreeRTOS_SetupTickInterrupt( void );
