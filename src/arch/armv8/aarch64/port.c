@@ -141,7 +141,7 @@ point is zero. */
 }
 
 /* Hardware specifics used when sanity checking the configuration. */
-#define portINTERRUPT_PRIORITY_REGISTER_OFFSET		0x400UL
+#define portINTERRUPT_PRIORITY_REGISTER_OFFSET		0x420UL
 #define portMAX_8_BIT_VALUE							( ( uint8_t ) 0xff )
 #define portBIT_0_SET								( ( uint8_t ) 0x01 )
 
