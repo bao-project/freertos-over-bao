@@ -123,7 +123,6 @@ void vApplicationAssert( const char *pcFile, uint32_t ulLine );
 #define INCLUDE_eTaskGetState                1
 #define INCLUDE_xTimerPendFunctionCall       1
 #define INCLUDE_pcTaskGetTaskName            1
-#define portPOINTER_SIZE_TYPE	uint64_t
 #define portTICK_TYPE_IS_ATOMIC 1
 #define configMESSAGE_BUFFER_LENGTH_TYPE uint32_t
 #define configSTACK_DEPTH_TYPE uint32_t
@@ -132,7 +131,6 @@ void vApplicationAssert( const char *pcFile, uint32_t ulLine );
 #define portLOWEST_INTERRUPT_PRIORITY ( ( ( uint32_t ) configUNIQUE_INTERRUPT_PRIORITIES ) - 1UL )
 #define portLOWEST_USABLE_INTERRUPT_PRIORITY ( portLOWEST_INTERRUPT_PRIORITY - 1UL )
 
-#define configINTERRUPT_CONTROLLER_BASE_ADDRESS 0xF9010000
 #define configINTERRUPT_CONTROLLER_CPU_INTERFACE_OFFSET 0x10000
 
 void FreeRTOS_SetupTickInterrupt( void );
@@ -149,8 +147,6 @@ void FreeRTOS_ClearTickInterrupt( void );
 
 #define configMAX_API_CALL_INTERRUPT_PRIORITY (9)
 
-#define portSET_INTERRUPT_MASK_FROM_ISR()	uxPortSetInterruptMask()
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	vPortClearInterruptMask(x)
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
 
 #ifdef FREERTOS_ENABLE_TRACE

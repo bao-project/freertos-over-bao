@@ -37,6 +37,8 @@
 #include <sysregs.h>
 #include <gic.h>
 
+#define configINTERRUPT_CONTROLLER_BASE_ADDRESS PLAT_GICD_BASE_ADDR
+
 #ifndef configINTERRUPT_CONTROLLER_BASE_ADDRESS
 	#error configINTERRUPT_CONTROLLER_BASE_ADDRESS must be defined.  See https://www.FreeRTOS.org/Using-FreeRTOS-on-Cortex-A-Embedded-Processors.html
 #endif
@@ -145,7 +147,7 @@ the CPU itself before modifying certain hardware registers. */
 	portCPU_IRQ_ENABLE();											\
 }
 
-#define portINTERRUPT_PRIORITY_REGISTER_OFFSET		0x400UL
+#define portINTERRUPT_PRIORITY_REGISTER_OFFSET		0x420UL
 #define portMAX_8_BIT_VALUE							( ( uint8_t ) 0xff )
 #define portBIT_0_SET								( ( uint8_t ) 0x01 )
 
