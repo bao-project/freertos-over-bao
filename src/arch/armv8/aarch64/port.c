@@ -35,7 +35,6 @@
 
 #include <sysregs.h>
 #include <gic.h>
-#include <plat.h>
 
 #define configINTERRUPT_CONTROLLER_BASE_ADDRESS PLAT_GICD_BASE_ADDR
 
