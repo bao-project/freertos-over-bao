@@ -69,10 +69,23 @@ void shmem_update_msg(int irq_count) {
         irq_count);
 }
 
+void ipc_notify(int dev_id) {
+#if defined(__aarch64__)
+    register uint64_t x0 asm("x0") = 0xc6000001;
+    register uint64_t x1 asm("x1") = dev_id;
+    register uint64_t x2 asm("x2") = 0;
+
+    asm volatile("hvc #0"
+                 : "=r"(x0)
+                 : "r"(x0), "r"(x1), "r"(x2));
+#endif
+}
+
 void uart_rx_handler(){
     static int irq_count = 0;
     printf("%s %d\n", __func__, ++irq_count);
     shmem_update_msg(irq_count);
+    ipc_notify(0);
     uart_clear_rxirq();
 }
 
