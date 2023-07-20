@@ -78,6 +78,16 @@ void ipc_notify(int dev_id) {
     asm volatile("hvc #0"
                  : "=r"(x0)
                  : "r"(x0), "r"(x1), "r"(x2));
+#elif defined(__riscv)
+    long register _a0 asm("a0") = dev_id;
+    long register _a1 asm("a1") = 0;
+    long register _a6 asm("a6") = 1;
+    long register _a7 asm("a7") = 0x08000ba0;
+
+    asm volatile("ecall"
+                 : "+r"(_a0), "+r"(_a1)
+                 : "r"(_a6), "r"(_a7)
+                 : "memory");
 #endif
 }
 
