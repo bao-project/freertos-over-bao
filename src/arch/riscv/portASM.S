@@ -384,15 +384,7 @@ handle_interrupt:
         addi t1, t0, 5					/* 0x8000[]0005 == sueprvisor timer interrupt. */
         bne a0, t1, application_interrupt_handler
 
-    csrr t1, time
-    ld a0, uxTimerIncrementsForOneTick 
-#define SBI_EXTID_TIME (0x54494D45)
-#define SBI_SET_TIMER_FID (0x0)
-    /* ecall to sbi_set_timer */
-    add a0, a0, t1
-    li a6, SBI_SET_TIMER_FID
-    li a7, SBI_EXTID_TIME
-    ecall
+    jal riscv_timer_interrupt_handler
 
     jal xTaskIncrementTick
     beqz a0, processed_source		/* Don't switch context if incrementing tick didn't unblock a task. */
