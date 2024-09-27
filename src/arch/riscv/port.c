@@ -35,6 +35,8 @@
 #include "task.h"
 #include "portmacro.h"
 #include <csrs.h>
+#include <sbi.h>
+#include <timer.h>
 
 /* Standard includes. */
 #include "string.h"
@@ -222,4 +224,8 @@ void vPortEndScheduler( void )
 void freertos_risc_v_application_interrupt_handler( void ) {
     extern void plic_handle();
     plic_handle();
+}
+
+void riscv_timer_interrupt_handler( void ) {
+    timer_set(uxTimerIncrementsForOneTick);
 }
