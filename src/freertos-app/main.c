@@ -34,6 +34,8 @@
 #include <irq.h>
 #include <plat.h>
 
+#include <virtio_console.h>
+
 /*
  * Prototypes for the standard FreeRTOS callback/hook functions implemented
  * within this file.  See https://www.freertos.org/a00016.html
@@ -45,13 +47,54 @@ void vApplicationTickHook(void);
 
 /*-----------------------------------------------------------*/
 
+#define VIRTIO_CONSOLE_RX_IRQ_ID (52)
+
+/*
+* The shared memory region must be within the range of the bare-metal RAM region.
+* In other words, must be within PLAT_MEM_BASE and PLAT_MEM_BASE + PLAT_MEM_SIZE.
+* This stems from the fact that the shared memory region is used by both the bare-metal
+* and the Linux backend guest, and for that reason the memory region msut be cache-coherent.
+* 
+* Example:
+* For the ZCU102 platform, the bare-metal RAM region is from 0x20000000 to 0x28000000.
+* However, we could define a shared memory region from 0x0 to 0x80000000 (2GB) if we
+* compile this guest with STD_ADDR_SPACE=y.
+*/
+static char* const shmem_base = (char*)0x50000000;
+static const long mmio_base = 0xa003e00;
+
+static struct virtio_console console;
+
+void virtio_console_rx_handler() {
+    if (virtio_console_receive(&console)) {
+        virtio_console_rx_print_buffer(&console);
+    }
+}
+
+void virtio_init(void)
+{
+    printf("Initializing virtio console ...\n");
+
+    if (!virtio_console_init(&console, shmem_base, mmio_base)) {
+        printf("virtio console initialization failed!\n");
+    } else {
+        printf("virtio console initialized\n");
+    }
+
+    irq_set_handler(VIRTIO_CONSOLE_RX_IRQ_ID, virtio_console_rx_handler);
+    irq_set_prio(VIRTIO_CONSOLE_RX_IRQ_ID, IRQ_MAX_PRIO);
+    irq_enable(VIRTIO_CONSOLE_RX_IRQ_ID);
+}
+
 void vTask(void *pvParameters)
 {
     unsigned long counter = 0;
     unsigned long id = (unsigned long)pvParameters;
+    char msg[32] = {0};
     while (1)
     {
-        printf("Task%d: %d\n", id, counter++);
+        sprintf(msg, "Task%d: %d\r\n", id, counter++);
+        virtio_console_transmit(&console, msg);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
@@ -64,6 +107,8 @@ void uart_rx_handler(){
 int main(void){
 
     printf("Bao FreeRTOS guest\n");
+
+    virtio_init();
 
     uart_enable_rxirq();
     irq_set_handler(UART_IRQ_ID, uart_rx_handler);
