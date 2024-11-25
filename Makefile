@@ -12,7 +12,7 @@ include $(bmrt_dir)/setup.mk
 # Inlcude all freertos sources
 
 # Main freertos application sources
-app_src_dir:=$(ROOT_DIR)/src
+app_src_dir:=$(ROOT_DIR)/src/freertos-app
 include $(app_src_dir)/sources.mk
 C_SRC+=$(addprefix $(app_src_dir)/, $(src_c_srcs))
 
