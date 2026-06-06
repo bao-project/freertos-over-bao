@@ -1,5 +1,5 @@
-#include <plic.h>
+#include <irq.h>
 
 void arch_init(){
-    plic_init();   
+    irqc_init();
 }

@@ -36,6 +36,7 @@
 #include "portmacro.h"
 #include <csrs.h>
 #include <sbi.h>
+#include <irq.h>
 #include <timer.h>
 
 /* Standard includes. */
@@ -227,8 +228,7 @@ void vPortEndScheduler( void )
 /*-----------------------------------------------------------*/
 
 void freertos_risc_v_application_interrupt_handler( void ) {
-    extern void plic_handle();
-    plic_handle();
+    irqc_handle();
 }
 
 void riscv_timer_interrupt_handler( void ) {
