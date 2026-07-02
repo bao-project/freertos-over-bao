@@ -65,10 +65,10 @@ int main(void){
 
     printf("Bao FreeRTOS guest\n");
 
-    uart_enable_rxirq();
     irq_set_handler(UART_IRQ_ID, uart_rx_handler);
-    irq_set_prio(UART_IRQ_ID, IRQ_MAX_PRIO);
+    uart_enable_rxirq();
     irq_enable(UART_IRQ_ID);
+    irq_set_prio(UART_IRQ_ID, UART_IRQ_PRIO);
 
     xTaskCreate(
         vTask,
